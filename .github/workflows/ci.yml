@@ -82,6 +82,8 @@ jobs:
         touch .env
         echo "${{ secrets.PROD }}" > .env
 
-    - run: pm2 start all
+    - name: Start Application with PM2
+      run: pm2 startOrRestart ecosystem.config.js --update-env
 
-    - run: pm2 restart all
+    - name: Save PM2 Process List
+      run: pm2 save
