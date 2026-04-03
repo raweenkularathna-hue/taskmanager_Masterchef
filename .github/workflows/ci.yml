@@ -39,7 +39,14 @@ jobs:
         echo "Secret 2 is: $JWT_SECRET"
         echo "Secret 3 is: $PORT"
       
-    - run: pm2 stop all
+    - name: Stop Existing PM2 Processes
+      shell: bash
+      run: |
+        if pm2 jlist | grep -q '"pm_id"'; then
+          pm2 stop all
+        else
+          echo "No PM2 processes to stop"
+        fi
 
     # Install dependencies for backend
     - name: Install Backend Dependencies
