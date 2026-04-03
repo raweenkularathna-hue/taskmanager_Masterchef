@@ -12,22 +12,23 @@ const Home = () => {
   const [category, setCategory] = useState('All');
   const [searchInput, setSearchInput] = useState('');
 
-  const fetchRecipes = async () => {
-    setLoading(true);
-    try {
-      const params = {};
-      if (search) params.search = search;
-      if (category !== 'All') params.category = category;
-      const { data } = await api.get('/recipes', { params });
-      setRecipes(data);
-    } catch {
-      setRecipes([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => { fetchRecipes(); }, [search, category]);
+  useEffect(() => {
+    const fetchRecipes = async () => {
+      setLoading(true);
+      try {
+        const params = {};
+        if (search) params.search = search;
+        if (category !== 'All') params.category = category;
+        const { data } = await api.get('/recipes', { params });
+        setRecipes(data);
+      } catch {
+        setRecipes([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchRecipes();
+  }, [search, category]);
 
   const handleSearch = (e) => {
     e.preventDefault();
