@@ -42,7 +42,7 @@ const Register = () => {
           <div className="flex justify-center ">
           <div className="bg-white/50 rounded-full w-36 h-36 flex items-center justify-center ">
             <img
-              src="http://localhost:5001/uploads/newlogo.png"
+              src="http://15.135.194.34:5001/uploads/newlogo.png"
               alt="Logo"
               className="w-full h-full object-cover"
             />

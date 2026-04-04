@@ -19,7 +19,7 @@ const Navbar = () => {
         <div className="flex justify-between h-16 items-center">
           {/* Logo */}
           <Link to="/" className="flex items-center font-bold text-xl">
-             <img src="http://localhost:5001/uploads/newlogo.png" alt="Logo" className="w-18 h-24 object-contain" />
+             <img src="http://15.135.194.34:5001/uploads/newlogo.png" alt="Logo" className="w-18 h-24 object-contain" />
             <span className="text-orange-500">MasterChef</span>
             <span className="text-black-500 ml-1">Recipes</span>
           </Link>
