@@ -32,10 +32,10 @@ const Login = () => {
       <div className="bg-white w-full max-w-md rounded-3xl shadow-lg p-8 md:p-10">
         
         {/* Logo */}
-        <div className="flex justify-center">
-          <div className="bg-white/50 rounded-full w-36 h-36 flex items-center justify-center ">
+        <div className="flex justify-center mb-4">
+          <div className="rounded-full w-36 h-36 overflow-hidden">
             <img
-              src="http://localhost:5001/uploads/newlogo.png"
+              src="http://15.135.194.34:5001/uploads/newlogo.png"
               alt="Logo"
               className="w-full h-full object-cover"
             />
