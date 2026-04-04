@@ -77,6 +77,11 @@ jobs:
       working-directory: ./backend
       run: npm test
 
+    - name: Seed Database
+      env:
+        MONGO_URI: ${{ secrets.MONGO_URI }}
+      working-directory: ./backend
+      run: npm run seed
 
     - run: npm ci
     - run: | 
