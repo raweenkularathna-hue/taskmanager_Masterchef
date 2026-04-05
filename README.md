@@ -232,4 +232,59 @@ The GitHub Actions workflow (`.github/workflows/ci.yml`) runs on every push to `
 | `PORT` | Backend port (5001) |
 | `PROD` | Full `.env` file contents for production |
 
+---
+
+## Discussion
+
+### Architecture Decisions
+
+The MasterChef Recipe Share application was designed around a decoupled full-stack architecture. The frontend (React) and backend (Node.js/Express) are maintained as separate projects, communicating exclusively through a RESTful API. This separation allows each layer to be developed, tested, and deployed independently.
+
+MongoDB Atlas was chosen as the database due to its flexible document model, which suits recipe data that contains variable-length arrays (ingredients, instructions) without requiring a rigid relational schema. Mongoose was used on top of MongoDB to enforce a consistent data structure through schema definitions and pre-save hooks, such as automatic password hashing when a user document is saved.
+
+JWT-based authentication was implemented rather than session-based authentication because the application is stateless and served from a cloud instance. JWTs are signed with a secret key and verified on every protected route, removing the need for server-side session storage.
+
+### CI/CD and Deployment
+
+GitHub Actions was configured with a self-hosted runner installed directly on the AWS EC2 instance. This means every push to the `main` branch automatically installs dependencies, runs backend tests, builds the React frontend, seeds the database, and restarts the application using PM2 — without any manual SSH intervention.
+
+Nginx was configured as a reverse proxy on port 80 to route requests to the appropriate service: the React build served by PM2 (`/`) and the Express API (`/api`). This eliminates the need to expose backend ports directly and gives a single clean entry point for browser traffic.
+
+PM2 was chosen over running Node.js directly because it provides automatic process restart on crashes, log management, and the ability to register the app as a systemd service (`pm2 startup`), ensuring the application survives SSH disconnects and EC2 reboots.
+
+### Challenges Encountered
+
+One significant challenge during deployment was port binding conflicts (`EADDRINUSE`). Multiple PM2 restart attempts during CI runs left orphaned Node.js processes holding port 5001, preventing the backend from starting cleanly. This was resolved by adding a graceful stop step in the CI workflow before restarting, and by using `pm2 startOrRestart` with an ecosystem config file rather than ad-hoc `pm2 start`/`pm2 restart` commands.
+
+Another challenge was ESLint treating warnings as errors in the React production build (`CI=true` sets `CI=true` which causes the build to fail on any warning). Unused imports across multiple components had to be cleaned up to allow the frontend build to succeed in the pipeline.
+
+Image loading was also a consideration — the backend serves uploaded images as static files from the `uploads/` directory, and the seed script references these files using the EC2 public IP. This means seeded images are only available when the EC2 instance is running and accessible. In a production system, a service like AWS S3 would be a more robust and scalable solution for user-uploaded media.
+
+### Security Considerations
+
+- Passwords are hashed with bcrypt before storage; plain-text passwords are never persisted
+- JWT tokens are verified on all protected routes using middleware before any database operation is performed
+- Admin-only routes are protected by a secondary `adminOnly` middleware check on top of `protect`
+- Environment variables (MongoDB URI, JWT secret) are stored as GitHub Secrets and injected at deploy time, never committed to the repository
+- CORS is enabled on the backend to allow the frontend origin to communicate with the API
+
+---
+
+## Conclusion
+
+The MasterChef Recipe Share project successfully demonstrates a complete software development lifecycle — from local development through automated CI/CD to a publicly accessible production deployment on AWS EC2. The application implements core full-stack concepts including RESTful API design, JWT authentication, role-based access control, file upload handling, and database seeding.
+
+The GitHub Actions pipeline automates the entire deployment process: running tests, building the frontend, seeding the database, and restarting services on every push to `main`. This eliminates manual deployment steps and ensures a consistent, reproducible deployment environment.
+
+The use of PM2 with a `pm2 startup` hook ensures application availability beyond active SSH sessions, addressing a key requirement for a continuously accessible web service. Nginx as a reverse proxy provides a clean single-port access point on port 80 and decouples the web server layer from the application processes.
+
+Future improvements would include migrating image storage to AWS S3 for durability and scalability, adding HTTPS via Let's Encrypt for secure connections, implementing rate limiting on authentication endpoints to prevent brute-force attacks, and allocating an Elastic IP on EC2 to avoid the public IP changing on instance restarts.
+
+Overall, this project provided hands-on exposure to the real-world challenges of deploying and maintaining a full-stack web application in a cloud environment, reinforcing the value of automation, environment parity, and process management in a software delivery pipeline.
+
+---
+
+## License
+
+MIT
 

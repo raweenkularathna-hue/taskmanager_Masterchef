@@ -1,7 +1,7 @@
 module.exports = {
   apps: [
     {
-      name: 'app',
+      name: 'backend',
       script: './backend/server.js',
       watch: false,
       env: {
