@@ -29,25 +29,21 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: ${{ matrix.node-version }}
-
-    - name: Print Env Secret
-
-      env:
-        MONGO_URI: ${{ secrets.MONGO_URI }}
-        JWT_SECRET: ${{ secrets.JWT_SECRET }}
-        PORT: ${{ secrets.PORT }}
-      run: | 
-        echo "Secret 1 is: $MONGO_URI"
-        echo "Secret 2 is: $JWT_SECRET"
-        echo "Secret 3 is: $PORT"
       
-    - name: Stop Existing PM2 Processes
+    - name: Clean Existing PM2 Processes
       shell: bash
       run: |
         if pm2 jlist | grep -q '"pm_id"'; then
-          pm2 stop all
+          pm2 delete all
         else
           echo "No PM2 processes to stop"
+        fi
+
+    - name: Free Backend Port
+      shell: bash
+      run: |
+        if lsof -ti:5001 >/dev/null 2>&1; then
+          lsof -ti:5001 | xargs -r kill -9
         fi
 
     # Install dependencies for backend
@@ -83,13 +79,16 @@ jobs:
       working-directory: ./backend
       run: npm run seed
 
-    - run: npm ci
     - run: | 
         cd ./backend
         touch .env
         echo "${{ secrets.PROD }}" > .env
 
     - name: Start Backend with PM2
+      env:
+        MONGO_URI: ${{ secrets.MONGO_URI }}
+        JWT_SECRET: ${{ secrets.JWT_SECRET }}
+        PORT: ${{ secrets.PORT }}
       run: pm2 startOrRestart ecosystem.config.js --update-env
 
     - name: Start or Reload Frontend with PM2
